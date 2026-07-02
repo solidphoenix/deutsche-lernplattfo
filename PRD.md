@@ -48,11 +48,11 @@ Diese Anwendung kombiniert PDF-Verwaltung, KI-gestützte Fragengenerierung, simu
 - **Success criteria**: Lernkarten basieren auf Story-Inhalten, Fortschritt wird getrackt, Statistiken werden angezeigt
 
 ### Lernfortschritt verfolgen
-- **Functionality**: Themen können als "gelernt" oder "in Bearbeitung" markiert werden
-- **Purpose**: Motiviert durch sichtbaren Fortschritt und verhindert Themendopplung
-- **Trigger**: Checkbox oder Toggle bei jedem Thema
-- **Progression**: Thema bearbeiten → Status ändern (nicht begonnen/in Bearbeitung/abgeschlossen) → Visuelles Feedback → Fortschritt wird gespeichert
-- **Success criteria**: Statusänderungen werden sofort visuell reflektiert und über Sessions hinweg gespeichert
+- **Functionality**: Zeigt detaillierte Statistiken über absolvierte Examen, Leistungsentwicklung, Themen-Mastery und persönliche Stärken/Schwächen
+- **Purpose**: Motiviert durch sichtbaren Fortschritt, identifiziert Verbesserungspotenzial und zeigt Lernmuster
+- **Trigger**: Klick auf "Statistiken"-Tab
+- **Progression**: Tab öffnen → Dashboard mit Metriken sehen → Leistungsverlauf analysieren → Starke/schwache Themen identifizieren → Examen-Historie durchsehen
+- **Success criteria**: Statistiken werden korrekt berechnet, Charts zeigen Trends, Themen-Mastery wird akkurat dargestellt, historische Daten sind vollständig
 
 ### PDFs anzeigen und verwalten
 - **Functionality**: Hochgeladene PDFs können angezeigt, heruntergeladen und gelöscht werden

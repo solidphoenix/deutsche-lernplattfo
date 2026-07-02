@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -17,12 +17,19 @@ import {
   Notebook,
   FilePdf,
   List,
-  Play
+  Play,
+  ChartLine
 } from '@phosphor-icons/react'
 import { availablePDFs } from '@/lib/pdf-loader'
 import { examTopics } from '@/lib/topics'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
+import { StatisticsOverview } from '@/components/StatisticsOverview'
+import { 
+  calculateProgressStats, 
+  calculateExamScore,
+  type ExamScore 
+} from '@/lib/statistics'
 
 interface Question {
   id: string
@@ -66,6 +73,34 @@ function App() {
   const [examTimeRemaining, setExamTimeRemaining] = useState(30 * 60)
   const [prepTimerActive, setPrepTimerActive] = useState(false)
   const [examTimerActive, setExamTimerActive] = useState(false)
+  const [examStartTime, setExamStartTime] = useState<number>(0)
+
+  const progressStats = useMemo(() => {
+    return calculateProgressStats(generatedExams || [], examAttempts || [])
+  }, [generatedExams, examAttempts])
+
+  const examScores = useMemo(() => {
+    const completedAttempts = (examAttempts || []).filter(a => a.completedAt)
+    return completedAttempts.map(attempt => {
+      const exam = (generatedExams || []).find(e => e.id === attempt.examId)
+      if (!exam) return null
+
+      const baseScore = calculateExamScore(exam.questions, attempt.userAnswers)
+      const timeSpent = attempt.completedAt && attempt.startedAt 
+        ? Math.floor((attempt.completedAt - attempt.startedAt) / 1000)
+        : 0
+
+      return {
+        ...baseScore,
+        examId: exam.id,
+        attemptId: attempt.id,
+        pdfFileName: exam.pdfFileName,
+        completedAt: attempt.completedAt || 0,
+        timeSpent
+      }
+    }).filter((score): score is ExamScore => score !== null)
+      .sort((a, b) => b.completedAt - a.completedAt)
+  }, [generatedExams, examAttempts])
 
   useEffect(() => {
     if (prepTimerActive) {
@@ -179,10 +214,11 @@ Wichtig: Es müssen EXAKT 9 Fragen sein!`
   }
 
   const handleStartPreparation = (exam: Exam) => {
+    const now = Date.now()
     const attempt: ExamAttempt = {
-      id: `attempt-${Date.now()}`,
+      id: `attempt-${now}`,
       examId: exam.id,
-      startedAt: Date.now(),
+      startedAt: now,
       prepNotes: '',
       userAnswers: {}
     }
@@ -193,6 +229,7 @@ Wichtig: Es müssen EXAKT 9 Fragen sein!`
     setPrepNotes('')
     setPrepTimeRemaining(20 * 60)
     setPrepTimerActive(true)
+    setExamStartTime(now)
   }
 
   const handleStartExamPhase = () => {
@@ -574,7 +611,7 @@ Wichtig: Es müssen EXAKT 9 Fragen sein!`
 
       <main className="container mx-auto px-4 md:px-6 py-6 md:py-8">
         <Tabs defaultValue="pdfs" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsList className="grid w-full max-w-3xl grid-cols-4">
             <TabsTrigger value="pdfs" className="gap-2">
               <FilePdf size={16} />
               Lernsituationen
@@ -586,6 +623,10 @@ Wichtig: Es müssen EXAKT 9 Fragen sein!`
             <TabsTrigger value="topics" className="gap-2">
               <List size={16} />
               Themen
+            </TabsTrigger>
+            <TabsTrigger value="statistics" className="gap-2">
+              <ChartLine size={16} />
+              Statistiken
             </TabsTrigger>
           </TabsList>
 
@@ -774,6 +815,10 @@ Wichtig: Es müssen EXAKT 9 Fragen sein!`
                 </motion.div>
               ))}
             </div>
+          </TabsContent>
+
+          <TabsContent value="statistics" className="space-y-6">
+            <StatisticsOverview stats={progressStats} examScores={examScores} />
           </TabsContent>
         </Tabs>
       </main>
