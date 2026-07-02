@@ -57,6 +57,63 @@ interface ExamAttempt {
 
 type ExamPhase = 'prep' | 'exam' | 'review'
 
+const validDifficulties = ['easy', 'medium', 'hard'] as const
+
+function extractJsonPayload(response: string) {
+  const trimmed = response.trim()
+  const fencedJson = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
+
+  if (fencedJson?.[1]) {
+    return fencedJson[1].trim()
+  }
+
+  const firstBrace = trimmed.indexOf('{')
+  const lastBrace = trimmed.lastIndexOf('}')
+
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    return trimmed.slice(firstBrace, lastBrace + 1)
+  }
+
+  return trimmed
+}
+
+function parseExamResponse(response: unknown) {
+  if (!response) {
+    throw new Error('Die KI hat keine Antwort zurückgegeben.')
+  }
+
+  if (typeof response !== 'string') {
+    return response
+  }
+
+  try {
+    return JSON.parse(extractJsonPayload(response))
+  } catch {
+    throw new Error('Die KI-Antwort konnte nicht als JSON gelesen werden.')
+  }
+}
+
+function normalizeExamQuestion(question: any, index: number): Question {
+  const questionText = typeof question?.question === 'string' ? question.question.trim() : ''
+  const suggestedAnswer = typeof question?.suggestedAnswer === 'string' ? question.suggestedAnswer.trim() : ''
+  const difficulty = validDifficulties.includes(question?.difficulty) ? question.difficulty : 'medium'
+  const relatedTopics = Array.isArray(question?.relatedTopics)
+    ? question.relatedTopics.filter((topic: unknown): topic is number => Number.isInteger(topic))
+    : []
+
+  if (!questionText || !suggestedAnswer) {
+    throw new Error(`Frage ${index + 1} ist unvollständig.`)
+  }
+
+  return {
+    id: `q-${index}-${Date.now()}`,
+    question: questionText,
+    suggestedAnswer,
+    difficulty,
+    relatedTopics
+  }
+}
+
 function App() {
   const [generatedExams, setGeneratedExams] = useKV<Exam[]>('generated-exams', [])
   const [examAttempts, setExamAttempts] = useKV<ExamAttempt[]>('exam-attempts', [])
@@ -185,12 +242,16 @@ Format:
 
 Wichtig: Es müssen EXAKT 9 Fragen sein!`
 
+      if (!window.spark?.llm) {
+        throw new Error('Der Spark KI-Dienst ist nicht verfügbar. Bitte laden Sie die Seite neu.')
+      }
+
       console.log('[Exam Generation] Calling LLM with prompt...')
       console.log('[Exam Generation] Prompt preview:', promptText.substring(0, 150))
       const response = await window.spark.llm(promptText, 'gpt-4o', true)
-      console.log('[Exam Generation] LLM response received:', response?.substring(0, 200))
+      console.log('[Exam Generation] LLM response received:', typeof response === 'string' ? response.substring(0, 200) : response)
 
-      const parsed = JSON.parse(response)
+      const parsed = parseExamResponse(response)
       console.log('[Exam Generation] Parsed response, question count:', parsed.questions?.length)
 
       if (!parsed.questions || !Array.isArray(parsed.questions)) {
@@ -205,13 +266,7 @@ Wichtig: Es müssen EXAKT 9 Fragen sein!`
         id: `exam-${Date.now()}`,
         pdfFileName: pdf.fileName,
         createdAt: Date.now(),
-        questions: parsed.questions.map((q: any, index: number) => ({
-          id: `q-${index}-${Date.now()}`,
-          question: q.question,
-          suggestedAnswer: q.suggestedAnswer,
-          difficulty: q.difficulty || 'medium',
-          relatedTopics: q.relatedTopics || []
-        }))
+        questions: parsed.questions.map(normalizeExamQuestion)
       }
 
       console.log('[Exam Generation] Created exam object:', newExam.id, 'with', newExam.questions.length, 'questions')
