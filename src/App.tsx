@@ -185,7 +185,8 @@ Format:
 
 Wichtig: Es müssen EXAKT 9 Fragen sein!`
 
-      console.log('[Exam Generation] Calling LLM...')
+      console.log('[Exam Generation] Calling LLM with prompt...')
+      console.log('[Exam Generation] Prompt preview:', promptText.substring(0, 150))
       const response = await window.spark.llm(promptText, 'gpt-4o', true)
       console.log('[Exam Generation] LLM response received:', response?.substring(0, 200))
 
