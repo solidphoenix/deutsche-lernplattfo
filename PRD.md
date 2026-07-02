@@ -1,14 +1,14 @@
 # Planning Guide
 
-Eine digitale Lernplattform für Pflegeauszubildende zur Vorbereitung auf das mündliche Examen 25/26 mit strukturierter Themenübersicht und PDF-Verwaltung für Lernsituationen.
+Eine digitale Lernplattform für Pflegeauszubildende zur Vorbereitung auf das mündliche Examen 25/26 mit AI-gestützter Fragengenerierung, Probeexamen, Lernkarten und strukturierter Themenübersicht.
 
 **Experience Qualities**:
 1. **Strukturiert** - Klare Organisation der 29 Prüfungsthemen ermöglicht gezieltes Lernen
 2. **Vertrauenswürdig** - Professionelle medizinische Ästhetik vermittelt Seriosität und Kompetenz
 3. **Zugänglich** - Intuitive Navigation und übersichtliche Darstellung erleichtern den Lernprozess
 
-**Complexity Level**: Light Application (multiple features with basic state)
-Diese Anwendung verwaltet Prüfungsthemen, PDF-Uploads und Lernfortschritte - typisch für eine fokussierte Lern-App ohne komplexe Backend-Integration.
+**Complexity Level**: Complex Application (advanced functionality with multiple views)
+Diese Anwendung kombiniert PDF-Verwaltung, KI-gestützte Fragengenerierung, simulierte Probeexamen mit Zeitlimits, Lernkarten-System und Fortschrittstracking - typisch für eine vollständige Lernplattform mit mehreren interaktiven Modi.
 
 ## Essential Features
 
@@ -19,12 +19,33 @@ Diese Anwendung verwaltet Prüfungsthemen, PDF-Uploads und Lernfortschritte - ty
 - **Progression**: App öffnen → Themenliste erscheint → Thema auswählen → Details/Materialien ansehen
 - **Success criteria**: Alle 29 Themen sind korrekt mit Dozentennamen dargestellt und visuell unterscheidbar
 
-### PDF-Lernsituationen hochladen
-- **Functionality**: Ermöglicht Upload von PDF-Dateien und Zuordnung zu spezifischen Themen
-- **Purpose**: Digitale Verwaltung von Lernmaterialien direkt in der App
-- **Trigger**: Klick auf "Upload"-Button bei einem Thema oder globaler Upload-Button
-- **Progression**: Upload-Button klicken → Datei auswählen → Thema zuordnen → Bestätigen → PDF wird gespeichert und in Themenliste angezeigt
-- **Success criteria**: PDFs werden persistiert, sind dem richtigen Thema zugeordnet und können später abgerufen werden
+### PDF-Lernsituationen hochladen mit Texterkennung
+- **Functionality**: Ermöglicht Upload von PDF-Dateien, extrahiert automatisch die Story aus dem PDF
+- **Purpose**: Digitale Verwaltung von Lernmaterialien mit automatischer Story-Erkennung für KI-Generierung
+- **Trigger**: Klick auf "Upload"-Button oder globaler Upload-Button
+- **Progression**: Upload-Button klicken → Datei auswählen → Thema zuordnen → PDF wird analysiert → Story wird extrahiert → Bestätigung
+- **Success criteria**: PDFs werden hochgeladen, Story wird erkannt und extrahiert, Daten persistent gespeichert
+
+### KI-gestützte Fragengenerierung aus PDF-Stories
+- **Functionality**: Generiert automatisch 9 Prüfungsfragen basierend auf der Story aus dem PDF
+- **Purpose**: Erstellt realistische Prüfungsfragen die sich auf konkrete Lernsituationen beziehen
+- **Trigger**: "Fragen generieren"-Button bei PDF mit erkannter Story
+- **Progression**: Button klicken → KI analysiert Story → 9 Fragen werden erstellt (3 einfach, 3 mittel, 3 schwer) → Fragen werden gespeichert
+- **Success criteria**: Fragen beziehen sich auf die Story, decken das Thema ab, haben unterschiedliche Schwierigkeitsgrade
+
+### Probeexamen erstellen und durchführen
+- **Functionality**: Erstellt ein simuliertes Examen mit 20 Min Vorbereitung und 30 Min Prüfungszeit
+- **Purpose**: Realistische Examensvorbereitung unter Zeitdruck
+- **Trigger**: "Probeexamen erstellen"-Button bei PDF mit generierten Fragen
+- **Progression**: Probeexamen starten → 20 Min Vorbereitungsphase mit Notizen → 30 Min Prüfungsphase → Fragen beantworten → Review mit Musterantworten
+- **Success criteria**: Timer funktioniert korrekt, Notizen bleiben verfügbar, Antworten werden gespeichert, Review zeigt Vergleich
+
+### Lernkarten-System (Flashcards)
+- **Functionality**: Generiert Lernkarten aus PDF-Stories, erlaubt Durchgehen und Bewertung
+- **Purpose**: Aktives Lernen durch Wiederholung wichtiger Konzepte
+- **Trigger**: "Lernkarten erstellen"-Button bei PDF
+- **Progression**: Lernkarten generieren → Thema auswählen → Frage lesen → Antwort zeigen → Als richtig/falsch markieren → Statistik speichern
+- **Success criteria**: Lernkarten basieren auf Story-Inhalten, Fortschritt wird getrackt, Statistiken werden angezeigt
 
 ### Lernfortschritt verfolgen
 - **Functionality**: Themen können als "gelernt" oder "in Bearbeitung" markiert werden
@@ -45,7 +66,11 @@ Diese Anwendung verwaltet Prüfungsthemen, PDF-Uploads und Lernfortschritte - ty
 - **Ungültige Dateiformate**: Akzeptiere nur PDFs, zeige Fehlermeldung bei anderen Formaten
 - **Große Dateien**: Zeige Upload-Fortschritt und warne bei sehr großen Dateien (>10MB)
 - **Leere Suchergebnisse**: Zeige "Keine Themen gefunden" mit Hinweis zur Suchänderung
-- **Doppelte Uploads**: Erkenne identische Dateinamen und biete Umbenennen/Überschreiben an
+- **Keine Story im PDF erkannt**: Zeige Warnung und erlaube manuelle Text-Eingabe
+- **KI-Generierung fehlgeschlagen**: Zeige Fehlermeldung mit Retry-Option
+- **Zeitablauf während Probeexamen**: Automatischer Übergang zur nächsten Phase / Review
+- **Keine Lernkarten vorhanden**: Zeige Anleitung zum Erstellen von Lernkarten
+- **Unvollständige Examen-Antworten**: Erlaube Speichern und Fortsetzen später
 
 ## Design Direction
 Die Gestaltung soll Vertrauen, Professionalität und medizinische Kompetenz ausstrahlen - gleichzeitig aber modern und zugänglich für junge Auszubildende wirken. Medizinisches Blau vermittelt Ruhe und Konzentration, während warme Akzente Motivation schaffen.
