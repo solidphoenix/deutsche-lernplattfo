@@ -59,6 +59,20 @@ type ExamPhase = 'prep' | 'exam' | 'review'
 
 const validDifficulties = ['easy', 'medium', 'hard'] as const
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isValidDifficulty(value: unknown): value is Question['difficulty'] {
+  return typeof value === 'string' && validDifficulties.includes(value as Question['difficulty'])
+}
+
+function createQuestionId(index: number) {
+  return typeof globalThis.crypto?.randomUUID === 'function'
+    ? `q-${globalThis.crypto.randomUUID()}`
+    : `q-${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`
+}
+
 function extractJsonPayload(response: string) {
   const trimmed = response.trim()
   const fencedJson = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
@@ -94,14 +108,13 @@ function parseExamResponse(response: unknown) {
   }
 }
 
-function normalizeExamQuestion(question: any, index: number): Question {
-  const questionText = typeof question?.question === 'string' ? question.question.trim() : ''
-  const suggestedAnswer = typeof question?.suggestedAnswer === 'string' ? question.suggestedAnswer.trim() : ''
-  const difficulty = validDifficulties.includes(question?.difficulty) ? question.difficulty : 'medium'
-  const rawRelatedTopics = Array.isArray(question?.relatedTopics) ? question.relatedTopics : []
-  const relatedTopics = Array.isArray(question?.relatedTopics)
-    ? question.relatedTopics.filter((topic: unknown): topic is number => Number.isInteger(topic))
-    : []
+function normalizeExamQuestion(question: unknown, index: number): Question {
+  const source = isRecord(question) ? question : {}
+  const questionText = typeof source.question === 'string' ? source.question.trim() : ''
+  const suggestedAnswer = typeof source.suggestedAnswer === 'string' ? source.suggestedAnswer.trim() : ''
+  const difficulty = isValidDifficulty(source.difficulty) ? source.difficulty : 'medium'
+  const rawRelatedTopics = Array.isArray(source.relatedTopics) ? source.relatedTopics : []
+  const relatedTopics = rawRelatedTopics.filter((topic: unknown): topic is number => Number.isInteger(topic))
 
   if (rawRelatedTopics.length !== relatedTopics.length) {
     console.warn(`[Exam Generation] Ignored invalid relatedTopics for question ${index + 1}`)
@@ -112,7 +125,7 @@ function normalizeExamQuestion(question: any, index: number): Question {
   }
 
   return {
-    id: `q-${Date.now()}-${index}`,
+    id: createQuestionId(index),
     question: questionText,
     suggestedAnswer,
     difficulty,
