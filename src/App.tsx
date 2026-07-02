@@ -150,39 +150,37 @@ function App() {
       const allTopics = examTopics.map(t => `${t.id}. ${t.title}`).join('\n')
       const fileName = pdf.fileName
 
-      const promptText = [
-        `Du bist ein Prüfungsexperte für Pflegeausbildung.`,
-        ``,
-        `Erstelle ein mündliches Probeexamen mit GENAU 9 Fragen für die Lernsituation "${fileName}".`,
-        ``,
-        `Die Fragen sollen sich auf die folgenden Themen beziehen (wähle relevante aus):`,
-        allTopics,
-        ``,
-        `Anforderungen:`,
-        `1. GENAU 9 Fragen insgesamt`,
-        `2. 3 einfache Fragen (easy)`,
-        `3. 3 mittelschwere Fragen (medium)`,
-        `4. 3 schwere Fragen (hard)`,
-        `5. Jede Frage soll sich auf ein realistisches Pflegeszenario beziehen`,
-        `6. Die Fragen sollen kritisches Denken fördern`,
-        `7. Geeignet für ein 30-minütiges mündliches Examen`,
-        ``,
-        `Gib die Antwort als JSON-Objekt zurück mit einer "questions" Eigenschaft.`,
-        ``,
-        `Format:`,
-        `{`,
-        `  "questions": [`,
-        `    {`,
-        `      "question": "Die Frage",`,
-        `      "suggestedAnswer": "Eine ausführliche Musterantwort (3-5 Sätze)",`,
-        `      "difficulty": "easy|medium|hard",`,
-        `      "relatedTopics": [1, 2, 3]`,
-        `    }`,
-        `  ]`,
-        `}`,
-        ``,
-        `Wichtig: Es müssen EXAKT 9 Fragen sein!`
-      ].join('\n')
+      const promptText = `Du bist ein Prüfungsexperte für Pflegeausbildung.
+
+Erstelle ein mündliches Probeexamen mit GENAU 9 Fragen für die Lernsituation "${fileName}".
+
+Die Fragen sollen sich auf die folgenden Themen beziehen (wähle relevante aus):
+${allTopics}
+
+Anforderungen:
+1. GENAU 9 Fragen insgesamt
+2. 3 einfache Fragen (easy)
+3. 3 mittelschwere Fragen (medium)
+4. 3 schwere Fragen (hard)
+5. Jede Frage soll sich auf ein realistisches Pflegeszenario beziehen
+6. Die Fragen sollen kritisches Denken fördern
+7. Geeignet für ein 30-minütiges mündliches Examen
+
+Gib die Antwort als JSON-Objekt zurück mit einer "questions" Eigenschaft.
+
+Format:
+{
+  "questions": [
+    {
+      "question": "Die Frage",
+      "suggestedAnswer": "Eine ausführliche Musterantwort (3-5 Sätze)",
+      "difficulty": "easy|medium|hard",
+      "relatedTopics": [1, 2, 3]
+    }
+  ]
+}
+
+Wichtig: Es müssen EXAKT 9 Fragen sein!`
 
       const response = await window.spark.llm(promptText, 'gpt-4o', true)
       const parsed = JSON.parse(response)
