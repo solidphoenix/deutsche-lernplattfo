@@ -88,7 +88,8 @@ function parseExamResponse(response: unknown) {
 
   try {
     return JSON.parse(extractJsonPayload(response))
-  } catch {
+  } catch (error) {
+    console.error('[Exam Generation] Failed to parse LLM response:', error)
     throw new Error('Die KI-Antwort konnte nicht als JSON gelesen werden.')
   }
 }
@@ -97,16 +98,21 @@ function normalizeExamQuestion(question: any, index: number): Question {
   const questionText = typeof question?.question === 'string' ? question.question.trim() : ''
   const suggestedAnswer = typeof question?.suggestedAnswer === 'string' ? question.suggestedAnswer.trim() : ''
   const difficulty = validDifficulties.includes(question?.difficulty) ? question.difficulty : 'medium'
+  const rawRelatedTopics = Array.isArray(question?.relatedTopics) ? question.relatedTopics : []
   const relatedTopics = Array.isArray(question?.relatedTopics)
     ? question.relatedTopics.filter((topic: unknown): topic is number => Number.isInteger(topic))
     : []
+
+  if (rawRelatedTopics.length !== relatedTopics.length) {
+    console.warn(`[Exam Generation] Ignored invalid relatedTopics for question ${index + 1}`)
+  }
 
   if (!questionText || !suggestedAnswer) {
     throw new Error(`Frage ${index + 1} ist unvollständig.`)
   }
 
   return {
-    id: `q-${index}-${Date.now()}`,
+    id: `q-${Date.now()}-${index}`,
     question: questionText,
     suggestedAnswer,
     difficulty,
