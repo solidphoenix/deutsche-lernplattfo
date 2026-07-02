@@ -25,13 +25,19 @@ export async function extractTextFromPDF(fileData: string | ArrayBuffer): Promis
     const pages: string[] = []
 
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-      const page = await pdf.getPage(pageNumber)
-      const textContent = await page.getTextContent()
-      const pageText = textContent.items
-        .map(item => 'str' in item ? item.str : '')
-        .join(' ')
-        .replace(/\s+/g, ' ')
-        .trim()
+      let pageText = ''
+
+      try {
+        const page = await pdf.getPage(pageNumber)
+        const textContent = await page.getTextContent()
+        pageText = textContent.items
+          .map(item => 'str' in item ? item.str : '')
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+      } catch (error) {
+        console.warn(`Could not extract text from PDF page ${pageNumber}:`, error)
+      }
 
       if (pageText) {
         pages.push(pageText)

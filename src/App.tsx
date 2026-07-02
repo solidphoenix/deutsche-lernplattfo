@@ -59,7 +59,7 @@ interface ExamAttempt {
 type ExamPhase = 'prep' | 'exam' | 'review'
 
 const validDifficulties = ['easy', 'medium', 'hard'] as const
-const maxPdfPromptLength = 12000
+const maxPdfContextLength = 12000
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -240,7 +240,7 @@ function App() {
       const pdfBuffer = await pdfResponse.arrayBuffer()
       const extractedText = await extractTextFromPDF(pdfBuffer)
       const pdfContext = (findStoryInText(extractedText) || extractedText)
-        .slice(0, maxPdfPromptLength)
+        .slice(0, maxPdfContextLength)
         .trim()
 
       if (!pdfContext) {
