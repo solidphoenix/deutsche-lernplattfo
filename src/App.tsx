@@ -144,11 +144,14 @@ function App() {
 
     setIsGenerating(true)
     setSelectedPdfForGeneration(pdfId)
-    toast.info(`Generiere Probeexamen aus "${pdf.fileName}"...`)
+    
+    const toastId = toast.loading(`Generiere Probeexamen aus "${pdf.fileName}"...`)
 
     try {
       const allTopics = examTopics.map(t => `${t.id}. ${t.title}`).join('\n')
       const fileName = pdf.fileName
+
+      console.log('[Exam Generation] Starting generation for:', fileName)
 
       const promptText = `Du bist ein Prüfungsexperte für Pflegeausbildung.
 
@@ -182,11 +185,19 @@ Format:
 
 Wichtig: Es müssen EXAKT 9 Fragen sein!`
 
+      console.log('[Exam Generation] Calling LLM...')
       const response = await window.spark.llm(promptText, 'gpt-4o', true)
-      const parsed = JSON.parse(response)
+      console.log('[Exam Generation] LLM response received:', response?.substring(0, 200))
 
-      if (!parsed.questions || parsed.questions.length !== 9) {
-        throw new Error('Die LLM-Antwort enthielt nicht exakt 9 Fragen')
+      const parsed = JSON.parse(response)
+      console.log('[Exam Generation] Parsed response, question count:', parsed.questions?.length)
+
+      if (!parsed.questions || !Array.isArray(parsed.questions)) {
+        throw new Error('Die LLM-Antwort enthält kein questions-Array')
+      }
+
+      if (parsed.questions.length !== 9) {
+        console.warn(`[Exam Generation] Expected 9 questions, got ${parsed.questions.length}`)
       }
 
       const newExam: Exam = {
@@ -202,12 +213,19 @@ Wichtig: Es müssen EXAKT 9 Fragen sein!`
         }))
       }
 
-      setGeneratedExams(current => [...(current || []), newExam])
-      toast.success(`Probeexamen mit 9 Fragen erstellt!`)
+      console.log('[Exam Generation] Created exam object:', newExam.id, 'with', newExam.questions.length, 'questions')
+      
+      setGeneratedExams(current => {
+        const updated = [...(current || []), newExam]
+        console.log('[Exam Generation] Updated exams list, total count:', updated.length)
+        return updated
+      })
+      
+      toast.success(`Probeexamen mit ${newExam.questions.length} Fragen erstellt!`, { id: toastId })
       setCurrentExam(newExam)
     } catch (error) {
-      console.error('Error generating exam:', error)
-      toast.error('Fehler beim Generieren des Probeexamens')
+      console.error('[Exam Generation] Error:', error)
+      toast.error(`Fehler beim Generieren: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`, { id: toastId })
     } finally {
       setIsGenerating(false)
       setSelectedPdfForGeneration(null)
