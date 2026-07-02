@@ -59,6 +59,7 @@ interface ExamAttempt {
 type ExamPhase = 'prep' | 'exam' | 'review'
 
 const validDifficulties = ['easy', 'medium', 'hard'] as const
+// Keep extracted PDF context bounded so Spark LLM prompts stay responsive.
 const maxPdfContextLength = 12000
 
 function isRecord(value: unknown): value is Record<string, unknown> {

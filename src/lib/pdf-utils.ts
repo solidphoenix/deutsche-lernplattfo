@@ -4,8 +4,20 @@ import pdfWorkerUrl from 'pdfjs-dist/legacy/build/pdf.worker.mjs?url'
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
 function dataUrlToBytes(fileData: string): Uint8Array {
-  const base64Data = fileData.includes(',') ? fileData.split(',')[1] : fileData
-  const binaryString = atob(base64Data)
+  const base64Data = fileData.startsWith('data:') ? fileData.split(',')[1] : fileData
+
+  if (!base64Data?.trim()) {
+    throw new Error('PDF-Daten enthalten keinen lesbaren Base64-Inhalt.')
+  }
+
+  let binaryString = ''
+
+  try {
+    binaryString = atob(base64Data.trim())
+  } catch {
+    throw new Error('PDF-Daten sind kein gültiger Base64-String.')
+  }
+
   const bytes = new Uint8Array(binaryString.length)
 
   for (let i = 0; i < binaryString.length; i++) {
@@ -15,11 +27,11 @@ function dataUrlToBytes(fileData: string): Uint8Array {
   return bytes
 }
 
-export async function extractTextFromPDF(fileData: string | ArrayBuffer): Promise<string> {
+export async function extractTextFromPDF(pdfDataUrlOrBuffer: string | ArrayBuffer): Promise<string> {
   try {
-    const data = typeof fileData === 'string'
-      ? dataUrlToBytes(fileData)
-      : new Uint8Array(fileData)
+    const data = typeof pdfDataUrlOrBuffer === 'string'
+      ? dataUrlToBytes(pdfDataUrlOrBuffer)
+      : new Uint8Array(pdfDataUrlOrBuffer)
     const loadingTask = pdfjsLib.getDocument({ data })
     const pdf = await loadingTask.promise
     const pages: string[] = []
