@@ -123,7 +123,7 @@ app.post('/api/attempts', (request, response, next) => {
 if (existsSync(frontendDirectory)) {
   app.use(express.static(frontendDirectory))
 
-  app.get('*', (request, response, next) => {
+  app.use((request, response, next) => {
     if (request.path.startsWith('/api/')) {
       return next()
     }
@@ -133,7 +133,8 @@ if (existsSync(frontendDirectory)) {
   })
 }
 
-app.use((error: unknown, _request: express.Request, response: express.Response) => {
+app.use((error: unknown, _request: express.Request, response: express.Response, next: express.NextFunction) => {
+  void next
   if (error instanceof z.ZodError) {
     return response.status(400).json({
       message: 'Die Anfrage ist unvollständig oder fehlerhaft.',
