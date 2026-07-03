@@ -9,7 +9,7 @@ import "./main.css"
 import "./styles/theme.css"
 import "./index.css"
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById('spark-app')!).render(
   <ErrorBoundary FallbackComponent={ErrorFallback}>
     <App />
    </ErrorBoundary>
