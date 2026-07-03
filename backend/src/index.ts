@@ -157,8 +157,8 @@ if (existsSync(frontendDirectory)) {
   })
 }
 
-app.use((error: unknown, _request: express.Request, response: express.Response, next: express.NextFunction) => {
-  void next
+app.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
+  void _next
   if (error instanceof z.ZodError) {
     return response.status(400).json({
       message: 'Die Anfrage ist unvollständig oder fehlerhaft.',
