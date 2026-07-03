@@ -6,6 +6,7 @@ import { resolve } from 'node:path'
 const projectRoot = process.env.PROJECT_ROOT || import.meta.dirname
 
 export default defineConfig({
+  base: process.env.VITE_BASE_PATH ?? '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
