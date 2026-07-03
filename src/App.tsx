@@ -26,7 +26,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { apiClient } from '@/lib/api'
 import { calculateExamScore, calculateProgressStats } from '@/lib/statistics'
 import { examTopics } from '@/lib/topics'
-import type { Difficulty, ExamAttempt, ExamPhase, FallbeispielSummary, GeneratedExam, Question } from '@/lib/types'
+import type { Difficulty, ExamAttempt, ExamPhase, FallbeispielSummary, GeneratedExam } from '@/lib/types'
 
 const preparationDurationSeconds = 20 * 60
 const examDurationSeconds = 30 * 60

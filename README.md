@@ -1,23 +1,115 @@
-# ✨ Welcome to Your Spark Template!
-You've just launched your brand-new Spark Template Codespace — everything’s fired up and ready for you to explore, build, and create with Spark!
+# Deutsche Lernplattform
 
-This template is your blank canvas. It comes with a minimal setup to help you get started quickly with Spark development.
+Eine selbst hostbare Lernplattform für die Pflegefachassistenz. Die App erstellt aus einem ausgewählten Fallbeispiel ein mündliches Probeexamen mit **genau 9 Fragen** (3 leicht, 3 mittel, 3 schwer), bietet Vorbereitungs- und Prüfungsmodus und speichert Versuche für die Statistik.
 
-🚀 What's Inside?
-- A clean, minimal Spark environment
-- Pre-configured for local development
-- Ready to scale with your ideas
-  
-🧠 What Can You Do?
+## Architektur
 
-Right now, this is just a starting point — the perfect place to begin building and testing your Spark applications.
+- **Frontend:** React 19 + Vite + TypeScript + Tailwind
+- **Backend:** Node.js + Express + TypeScript
+- **Persistenz:** SQLite (`exams`, `attempts`)
+- **Prüfungs-Agent:** Backend-Modul mit Provider-Abstraktion (`openai-compatible` oder `ollama`)
+- **RAG:** Lernunterlagen aus `/knowledge` werden gechunkt, eingebettet und in einer lokalen SQLite-basierten Vektordatenbank gespeichert
 
-🧹 Just Exploring?
-No problem! If you were just checking things out and don’t need to keep this code:
+## Projektstruktur
 
-- Simply delete your Spark.
-- Everything will be cleaned up — no traces left behind.
+- `/src` – Frontend
+- `/backend` – API, Prüfungs-Agent, Persistenz, PDF-Extraktion
+- `/knowledge` – Ablage für Pflegefachassistenz-Lernunterlagen
+- `/src/assets/documents` – die 8 Fallbeispiel-PDFs
 
-📄 License For Spark Template Resources 
+## Voraussetzungen
 
-The Spark Template files and resources from GitHub are licensed under the terms of the MIT license, Copyright GitHub, Inc.
+- Node.js 22+
+- npm 10+
+- Optional: Ollama, wenn Sie lokal oder vollständig selbst gehostet generieren/einbetten möchten
+
+## Lokale Entwicklung
+
+### 1. Frontend installieren
+
+```bash
+npm install
+```
+
+### 2. Backend installieren
+
+```bash
+cd backend
+npm install
+```
+
+### 3. Umgebung konfigurieren
+
+```bash
+cp .env.example .env
+```
+
+Passen Sie danach mindestens Ihren LLM-Zugang in `.env` an.
+
+### 4. Lernunterlagen hochladen und indexieren
+
+Legen Sie PDF-, Markdown- oder Textdateien in `/knowledge` ab.
+
+```bash
+cd backend
+npm run ingest
+```
+
+Wenn `/knowledge` leer ist, funktioniert die Generierung weiterhin nur mit dem Fallbeispieltext und der Themenliste.
+
+### 5. Backend starten
+
+```bash
+cd backend
+npm run dev
+```
+
+### 6. Frontend starten
+
+```bash
+npm run dev
+```
+
+Standardmäßig sprechen Frontend und Backend über `VITE_API_BASE_URL=/api`. Für lokale getrennte Ports können Sie in `.env` z. B. `VITE_API_BASE_URL=http://localhost:3001/api` setzen.
+
+## Builds
+
+### Frontend
+
+```bash
+npm run build
+```
+
+### Backend
+
+```bash
+cd backend
+npm run build
+```
+
+## Backend-Skripte
+
+Im Ordner `/backend`:
+
+- `npm run dev` – Entwicklungsserver mit Watch-Modus
+- `npm run build` – TypeScript-Build
+- `npm run start` – Startet den gebauten Server
+- `npm run ingest` – Baut den Wissensindex aus `/knowledge` neu auf
+
+## API-Endpunkte
+
+- `GET /api/fallbeispiele`
+- `POST /api/exams/generate`
+- `GET /api/exams`
+- `GET /api/exams/:id`
+- `POST /api/attempts`
+- `GET /api/attempts`
+- `GET /api/health`
+
+## Deployment
+
+Eine komplette VM- und Hosting-Anleitung finden Sie in [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+## Hinweis zur inhaltlichen Qualität
+
+Die Fragen werden KI-gestützt erzeugt. Sie sollten vor einem verbindlichen Einsatz von einer Lehrkraft oder Praxisanleitung fachlich geprüft werden.

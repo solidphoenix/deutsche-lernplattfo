@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises'
-import pdfParse from 'pdf-parse'
+import { PDFParse } from 'pdf-parse'
 
 const storyPatterns = [
   /Fallbeispiel[:\s]+([\s\S]+?)(?=\n\n[A-ZÄÖÜ]|Aufgabe|Frage|$)/i,
@@ -7,15 +7,24 @@ const storyPatterns = [
   /Story[:\s]+([\s\S]+?)(?=\n\n[A-ZÄÖÜ]|Aufgabe|Frage|$)/i
 ]
 
-export async function extractTextFromPdf(filePath: string) {
-  const buffer = await readFile(filePath)
-  const parsed = await pdfParse(buffer)
-
-  return parsed.text
+function normalizePdfText(text: string) {
+  return text
     .replace(/\r/g, '')
     .replace(/[ \t]+/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
+}
+
+export async function extractTextFromPdf(filePath: string) {
+  const buffer = await readFile(filePath)
+  const parser = new PDFParse({ data: new Uint8Array(buffer) })
+
+  try {
+    const result = await parser.getText()
+    return normalizePdfText(result.text ?? '')
+  } finally {
+    await parser.destroy().catch(() => undefined)
+  }
 }
 
 export function buildGroundingExcerpt(text: string, maxLength = 9000) {

@@ -32,3 +32,10 @@ pids
 .devcontainer/
 
 .spark-workbench-id
+
+backend/node_modules
+backend/dist
+backend/data
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

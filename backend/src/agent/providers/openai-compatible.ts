@@ -28,7 +28,7 @@ export class OpenAiCompatibleProvider implements GenerationProvider, EmbeddingPr
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `******
+        Authorization: 'Bearer ' + this.apiKey
       },
       body: JSON.stringify({
         model: this.model,
@@ -63,7 +63,7 @@ export class OpenAiCompatibleProvider implements GenerationProvider, EmbeddingPr
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `******
+        Authorization: 'Bearer ' + this.apiKey
       },
       body: JSON.stringify({
         model: this.embeddingModel,

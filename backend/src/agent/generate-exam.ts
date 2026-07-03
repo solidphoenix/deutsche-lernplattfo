@@ -6,12 +6,6 @@ import { ApiError } from '../errors.js'
 import type { Difficulty, GeneratedExam, Question } from '../types.js'
 
 const difficultyOrder: Difficulty[] = ['easy', 'medium', 'hard']
-const difficultyLabels: Record<Difficulty, string> = {
-  easy: 'leicht',
-  medium: 'mittel',
-  hard: 'schwer'
-}
-
 function sentenceSplit(text: string) {
   return text
     .split(/(?<=[.!?])\s+/)
@@ -155,9 +149,9 @@ function createFallbackQuestion(
   const excerptLead = sentenceSplit(excerpt)[0] ?? fallbeispiel.displayName
 
   const templates: Record<Difficulty, string> = {
-    easy: `Beschreiben Sie im Fallbeispiel \"${fallbeispiel.displayName}\", welche ersten pflegerischen Beobachtungen zum Thema \"${topicTitle}\" wichtig sind.`,
-    medium: `Erläutern Sie im Fallbeispiel \"${fallbeispiel.displayName}\", wie Sie das Thema \"${topicTitle}\" fachgerecht planen, durchführen und dokumentieren würden.`,
-    hard: `Begründen Sie im Fallbeispiel \"${fallbeispiel.displayName}\", welche Prioritäten, Risiken und Grenzen der Pflegefachassistenz beim Thema \"${topicTitle}\" zu beachten sind.`
+    easy: `Beschreiben Sie im Fallbeispiel "${fallbeispiel.displayName}", welche ersten pflegerischen Beobachtungen zum Thema "${topicTitle}" wichtig sind.`,
+    medium: `Erläutern Sie im Fallbeispiel "${fallbeispiel.displayName}", wie Sie das Thema "${topicTitle}" fachgerecht planen, durchführen und dokumentieren würden.`,
+    hard: `Begründen Sie im Fallbeispiel "${fallbeispiel.displayName}", welche Prioritäten, Risiken und Grenzen der Pflegefachassistenz beim Thema "${topicTitle}" zu beachten sind.`
   }
 
   const answerTemplates: Record<Difficulty, string[]> = {

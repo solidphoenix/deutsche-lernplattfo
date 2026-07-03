@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import dotenv from 'dotenv'
 import { z } from 'zod'
 
@@ -66,7 +66,7 @@ export const appConfig = {
 } as const
 
 for (const filePath of [appConfig.dbPath, appConfig.vectorDbPath]) {
-  mkdirSync(resolve(filePath, '..'), { recursive: true })
+  mkdirSync(dirname(filePath), { recursive: true })
 }
 
 mkdirSync(appConfig.knowledgeDir, { recursive: true })

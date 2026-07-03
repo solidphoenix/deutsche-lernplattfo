@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - sqlite_data:/app/backend/data/sqlite
+      - vector_data:/app/backend/data/vector
+      - ./knowledge:/app/knowledge
+    expose:
+      - "3001"
+
+  caddy:
+    image: caddy:2.10.0
+    restart: unless-stopped
+    depends_on:
+      - app
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  ollama:
+    image: ollama/ollama:0.11.1
+    restart: unless-stopped
+    profiles: ["ollama"]
+    volumes:
+      - ollama_data:/root/.ollama
+    expose:
+      - "11434"
+
+volumes:
+  sqlite_data:
+  vector_data:
+  caddy_data:
+  caddy_config:
+  ollama_data:
