@@ -1,6 +1,6 @@
 import cors from 'cors'
 import express from 'express'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
@@ -19,6 +19,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const frontendDirectory = existsSync(appConfig.frontendDistDir)
   ? appConfig.frontendDistDir
   : join(__dirname, '..', '..', 'dist')
+const frontendIndexPath = join(frontendDirectory, 'index.html')
+const frontendIndexHtml = existsSync(frontendIndexPath) ? readFileSync(frontendIndexPath, 'utf8') : null
 
 const app = express()
 const allowedOrigins = new Set([
@@ -146,7 +148,11 @@ if (existsSync(frontendDirectory)) {
       return next()
     }
 
-    response.sendFile(join(frontendDirectory, 'index.html'))
+    if (!frontendIndexHtml) {
+      return next()
+    }
+
+    response.type('html').send(frontendIndexHtml)
     return undefined
   })
 }
