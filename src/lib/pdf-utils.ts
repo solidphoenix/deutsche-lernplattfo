@@ -1,20 +1,62 @@
-export async function extractTextFromPDF(fileData: string): Promise<string> {
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
+import pdfWorkerUrl from 'pdfjs-dist/legacy/build/pdf.worker.mjs?url'
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
+
+function dataUrlToBytes(fileData: string): Uint8Array {
+  const base64Data = fileData.startsWith('data:') ? fileData.split(',')[1] : fileData
+
+  if (!base64Data?.trim()) {
+    throw new Error('PDF-Daten enthalten keinen lesbaren Base64-Inhalt.')
+  }
+
+  let binaryString = ''
+
   try {
-    const base64Data = fileData.split(',')[1]
-    const binaryString = atob(base64Data)
-    const bytes = new Uint8Array(binaryString.length)
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i)
+    binaryString = atob(base64Data.trim())
+  } catch {
+    throw new Error('PDF-Daten sind kein gültiger Base64-String.')
+  }
+
+  const bytes = new Uint8Array(binaryString.length)
+
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i)
+  }
+
+  return bytes
+}
+
+export async function extractTextFromPDF(pdfDataUrlOrBuffer: string | ArrayBuffer): Promise<string> {
+  try {
+    const data = typeof pdfDataUrlOrBuffer === 'string'
+      ? dataUrlToBytes(pdfDataUrlOrBuffer)
+      : new Uint8Array(pdfDataUrlOrBuffer)
+    const loadingTask = pdfjsLib.getDocument({ data })
+    const pdf = await loadingTask.promise
+    const pages: string[] = []
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+      let pageText = ''
+
+      try {
+        const page = await pdf.getPage(pageNumber)
+        const textContent = await page.getTextContent()
+        pageText = textContent.items
+          .map(item => 'str' in item ? item.str : '')
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+      } catch (error) {
+        console.warn(`Could not extract text from PDF page ${pageNumber}:`, error)
+      }
+
+      if (pageText) {
+        pages.push(pageText)
+      }
     }
 
-    const text = String.fromCharCode.apply(null, Array.from(bytes))
-    const storyMatch = text.match(/Story[:\s]+([\s\S]+?)(?=\n\n|$)/i)
-    
-    if (storyMatch) {
-      return storyMatch[1].trim()
-    }
-
-    return text.substring(0, 5000)
+    return pages.join('\n\n')
   } catch (error) {
     console.error('Error extracting PDF text:', error)
     return ''

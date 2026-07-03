@@ -25,6 +25,7 @@ import { examTopics } from '@/lib/topics'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { StatisticsOverview } from '@/components/StatisticsOverview'
+import { extractTextFromPDF, findStoryInText } from '@/lib/pdf-utils'
 import { 
   calculateProgressStats, 
   calculateExamScore,
@@ -58,6 +59,8 @@ interface ExamAttempt {
 type ExamPhase = 'prep' | 'exam' | 'review'
 
 const validDifficulties = ['easy', 'medium', 'hard'] as const
+// Keep extracted PDF context bounded so Spark LLM prompts stay responsive.
+const maxPdfContextLength = 12000
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -228,10 +231,33 @@ function App() {
       const fileName = pdf.fileName
 
       console.log('[Exam Generation] Starting generation for:', fileName)
+      console.log('[Exam Generation] Loading PDF from:', pdf.filePath)
+
+      const pdfResponse = await fetch(pdf.filePath)
+      if (!pdfResponse.ok) {
+        throw new Error(`Die PDF konnte nicht geladen werden (${pdfResponse.status}).`)
+      }
+
+      const pdfBuffer = await pdfResponse.arrayBuffer()
+      const extractedText = await extractTextFromPDF(pdfBuffer)
+      const pdfContext = (findStoryInText(extractedText) || extractedText)
+        .slice(0, maxPdfContextLength)
+        .trim()
+
+      if (!pdfContext) {
+        throw new Error('Aus der PDF konnte kein lesbarer Text extrahiert werden.')
+      }
+
+      console.log('[Exam Generation] Extracted PDF text length:', extractedText.length)
 
       const promptText = `Du bist ein Prüfungsexperte für Pflegeausbildung.
 
 Erstelle ein mündliches Probeexamen mit GENAU 9 Fragen für die Lernsituation "${fileName}".
+
+Nutze den folgenden aus der PDF extrahierten Inhalt als Grundlage für Fallbezug, Themenauswahl und Musterantworten:
+"""
+${pdfContext}
+"""
 
 Die Fragen sollen sich auf die folgenden Themen beziehen (wähle relevante aus):
 ${allTopics}
