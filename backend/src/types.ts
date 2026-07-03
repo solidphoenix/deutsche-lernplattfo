@@ -1,10 +1,4 @@
 export type Difficulty = 'easy' | 'medium' | 'hard'
-export type ExamPhase = 'prep' | 'exam' | 'review'
-
-export interface FallbeispielSummary {
-  id: string
-  displayName: string
-}
 
 export interface Question {
   id: string
@@ -31,10 +25,7 @@ export interface ExamAttempt {
   userAnswers: Record<string, string>
 }
 
-export interface CreateAttemptPayload {
-  examId: string
-  startedAt: number
-  completedAt?: number
-  prepNotes: string
-  userAnswers: Record<string, string>
+export interface FallbeispielSummary {
+  id: string
+  displayName: string
 }
