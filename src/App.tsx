@@ -65,6 +65,7 @@ export default function App() {
   const [examAttempts, setExamAttempts] = useState<ExamAttempt[]>([])
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('fallbeispiele')
+  const [isExamGenerationAvailable, setIsExamGenerationAvailable] = useState(true)
   const [generatingFallbeispielId, setGeneratingFallbeispielId] = useState<string | null>(null)
   const [currentExam, setCurrentExam] = useState<GeneratedExam | null>(null)
   const [examPhase, setExamPhase] = useState<ExamPhase>('prep')
@@ -88,6 +89,7 @@ export default function App() {
     setFallbeispiele(fallbeispieleResponse)
     setGeneratedExams(examsResponse)
     setExamAttempts(attemptsResponse)
+    setIsExamGenerationAvailable(apiClient.isExamGenerationAvailable())
   }, [])
 
   useEffect(() => {
@@ -239,6 +241,11 @@ export default function App() {
   )
 
   const generateExam = useCallback(async (fallbeispiel: FallbeispielSummary) => {
+    if (!isExamGenerationAvailable) {
+      toast.info(apiClient.getExamGenerationHint())
+      return
+    }
+
     setGeneratingFallbeispielId(fallbeispiel.id)
     const toastId = toast.loading(`Generiere Probeexamen für „${fallbeispiel.displayName}“...`)
 
@@ -253,7 +260,7 @@ export default function App() {
     } finally {
       setGeneratingFallbeispielId(null)
     }
-  }, [])
+  }, [isExamGenerationAvailable])
 
   if (currentExam && examPhase === 'prep') {
     return (
@@ -536,7 +543,9 @@ export default function App() {
                 <CardHeader>
                   <CardTitle>Verfügbare Fallbeispiele</CardTitle>
                   <CardDescription>
-                    Die Server-Seite extrahiert den Text aus der PDF und erstellt daraus ein mündliches Probeexamen.
+                    {isExamGenerationAvailable
+                      ? 'Die Server-Seite extrahiert den Text aus der PDF und erstellt daraus ein mündliches Probeexamen.'
+                      : 'Die Fallbeispiele sind sichtbar. Für „Probeexamen generieren“ benötigen Sie ein laufendes Backend (lokaler Vollbetrieb).'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2">
@@ -552,10 +561,14 @@ export default function App() {
                         <Button
                           className="w-full gap-2"
                           onClick={() => void generateExam(fallbeispiel)}
-                          disabled={generatingFallbeispielId === fallbeispiel.id}
+                          disabled={!isExamGenerationAvailable || generatingFallbeispielId === fallbeispiel.id}
                         >
                           <Sparkle size={18} />
-                          {generatingFallbeispielId === fallbeispiel.id ? 'Generierung läuft ...' : 'Probeexamen generieren'}
+                          {!isExamGenerationAvailable
+                            ? 'Backend erforderlich'
+                            : generatingFallbeispielId === fallbeispiel.id
+                              ? 'Generierung läuft ...'
+                              : 'Probeexamen generieren'}
                         </Button>
                       </CardContent>
                     </Card>
