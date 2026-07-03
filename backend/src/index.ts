@@ -12,6 +12,7 @@ import { countKnowledgeChunks } from './repositories/knowledge.js'
 import { getExamById, insertExam, listExams } from './repositories/exams.js'
 import { insertAttempt, listAttempts } from './repositories/attempts.js'
 import { buildGroundingExcerpt, extractTextFromPdf } from './services/pdf.js'
+import { createRateLimitMiddleware } from './middleware/rate-limit.js'
 import type { ExamAttempt } from './types.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -20,9 +21,26 @@ const frontendDirectory = existsSync(appConfig.frontendDistDir)
   : join(__dirname, '..', '..', 'dist')
 
 const app = express()
+const allowedOrigins = new Set([
+  new URL(appConfig.appBaseUrl).origin,
+  ...appConfig.allowedOrigins,
+  ...(appConfig.nodeEnv === 'development' ? ['http://localhost:5173'] : [])
+])
 
 app.use(express.json({ limit: '2mb' }))
-app.use(cors({ origin: appConfig.allowedOrigin || true }))
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true)
+        return
+      }
+
+      callback(new ApiError(403, 'Diese Herkunft ist für die API nicht freigegeben.'))
+    }
+  })
+)
+app.use(createRateLimitMiddleware({ windowMs: 60_000, maxRequests: 300 }))
 
 app.get('/api/health', (_request, response) => {
   response.json({
@@ -59,7 +77,7 @@ const generateExamSchema = z.object({
   fallbeispielId: z.string().min(1)
 })
 
-app.post('/api/exams/generate', async (request, response, next) => {
+app.post('/api/exams/generate', createRateLimitMiddleware({ windowMs: 60_000, maxRequests: 20 }), async (request, response, next) => {
   try {
     const { fallbeispielId } = generateExamSchema.parse(request.body)
     const fallbeispiel = getFallbeispielById(fallbeispielId)

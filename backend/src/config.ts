@@ -50,7 +50,7 @@ export const appConfig = {
   knowledgeDir: parsedEnv.KNOWLEDGE_DIR ?? resolve(repositoryRoot, 'knowledge'),
   dbPath: parsedEnv.DB_PATH ?? defaultDbPath,
   vectorDbPath: parsedEnv.VECTOR_DB_PATH ?? defaultVectorDbPath,
-  allowedOrigin: parsedEnv.ALLOWED_ORIGIN,
+  allowedOrigins: (parsedEnv.ALLOWED_ORIGIN ?? '').split(',').map((origin) => origin.trim()).filter(Boolean),
   llmProvider: parsedEnv.LLM_PROVIDER,
   llmBaseUrl: parsedEnv.LLM_BASE_URL,
   llmApiKey: parsedEnv.LLM_API_KEY,
